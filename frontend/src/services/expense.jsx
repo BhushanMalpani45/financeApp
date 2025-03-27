@@ -3,13 +3,11 @@ import axios from 'axios';
 const URL = "http://localhost:5000/api/expense";
 
 export const addExpense = async(expenseData)=>{
-    console.log("sdsdcds", expenseData);
     const response = await axios.post(`${URL}/add`, expenseData,{ withCredentials: true })
-    console.log("REsponse Data:",response.data);
-    if(response.data){alert("Success")}
-    else{
-        alert("fail");
-    }
+    // if(response.data){alert("Success")}
+    // else{
+    //     alert("fail");
+    // }
     return response.data;
 };
 
@@ -18,7 +16,10 @@ export const getExpense = async() =>{
 };
 
 export const getExpenseById = async (id) => {
-    return await axios.get(`${URL}/${id}`,{ withCredentials: true });
+    const response = await axios.get(`${URL}/${id}`,{ withCredentials: true });
+    // if(response.data){alert("Success")}
+    // else alert("Fail");
+    return response.data;
 };
 
 export const updateExpense = async(id, updateData)=>{

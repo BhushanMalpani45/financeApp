@@ -4,6 +4,7 @@ const cors = require("cors");
 require("dotenv").config(); // Correct dotenv configuration
 const expenseRoutes = require("./routes/expenseRoutes");
 const authRoutes = require("./routes/authRoutes");
+const accountRoutes = require("./routes/accountRoutes");
 const cookieParser = require("cookie-parser");
 
 const allowedOrigins = ["http://localhost:5173"];
@@ -20,6 +21,7 @@ app.use(cookieParser());
 
 app.use("/api/expense", expenseRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/accounts", accountRoutes);
 app.get("/check-cookies", (req, res) => {
   console.log("Cookies received:", req.cookies); // Debugging cookies
   res.json(req.cookies);

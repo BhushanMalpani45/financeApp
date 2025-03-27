@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { addExpense, getExpense, deleteExpense, updateExpense } from "../../services/expense";
+import { getExpense, deleteExpense } from "../../services/expense";
 import { useNavigate } from "react-router-dom";
 import { 
   Trash2, 
@@ -43,28 +43,34 @@ const ExpenseTracker = () => {
         setIsLoading(true);
         try {
             const res = await getExpense();
+            console.log("Fetched Expenses:", res.data);
             setExpenses(res.data);
             setError(null);
         } catch (error) {
             console.error("Failed to load expenses:", error);
-            setError("Unable to load expenses. Please try again later.");
-        } finally {
-            setIsLoading(false);
+
+            if (error.response && error.response.status === 401) {
+                navigate("/login");
+            } else {
+                setError("Failed to load expenses. Please try again.");
+            }
         }
+        setIsLoading(false);
     };
 
     const handleDelete = async (id) => {
         try {
             await deleteExpense(id);
-            loadExpenses();
+            loadExpenses(); // Reload the expenses after deletion
         } catch (error) {
             console.error("Failed to delete expense:", error);
             setError("Failed to delete expense. Please try again.");
         }
     };
 
-    const handleUpdate = (id) => {
-        navigate(`/updateExpense/${id}`);
+    const handleUpdate = (expense) => {
+        console.log("Navigating to updateExpense with ID:", expense._id);
+        navigate(`/updateExpense/${expense._id}`, { state: { expense } });
     };
 
     const handleAddExpense = () => {
@@ -168,19 +174,17 @@ const ExpenseTracker = () => {
                                         </td>
                                         <td className="p-4">{exp.category}</td>
                                         <td className="p-4">
-                                            <span className={`
-                                                px-2 py-1 rounded-full text-xs font-medium
+                                            <span className={`px-2 py-1 rounded-full text-xs font-medium
                                                 ${exp.transactionType === 'Income' 
                                                     ? 'bg-green-100 text-green-800' 
                                                     : 'bg-red-100 text-red-800'
-                                                }
-                                            `}>
+                                                }`}>
                                                 {exp.transactionType}
                                             </span>
                                         </td>
                                         <td className="p-4 text-right">
                                             <button 
-                                                onClick={() => handleUpdate(exp._id)}
+                                                onClick={() => handleUpdate(exp)}
                                                 className="text-blue-600 hover:text-blue-800 mr-4"
                                                 title="Edit"
                                             >

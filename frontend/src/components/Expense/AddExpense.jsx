@@ -37,7 +37,7 @@ const AddExpense = () => {
     "Savings",
     "Other",
   ];
-
+  
   const transactionTypes = ["Cash", "Gpay", "PhonePay", "CreditCard"];
 
   const handleInputChange = (e) => {
@@ -54,19 +54,23 @@ const AddExpense = () => {
     setError(null);
 
     try {
+      // Destructure formData
+      const { category, amount, date, isRecurring, transactionType, notes } = formData;
+
       // Validate form data
-      if (!formData.amount || !formData.category || !formData.transactionType) {
+      if (!amount || !category || !transactionType) {
         setError("Please fill in all required fields");
         setIsLoading(false);
         return;
       }
 
-      const response = await addExpense({
+      await addExpense({
         ...formData,
-        amount: parseFloat(formData.amount),
+        amount: parseFloat(amount),
       });
 
-      navigate("/expense");
+      // Navigate after successful addition
+      navigate("/user");
     } catch (error) {
       console.error("Error adding expense:", error);
       setError(error.message || "Failed to add expense");
@@ -76,12 +80,11 @@ const AddExpense = () => {
 
   const handleClose = () => {
     setIsOpen(false);
-    navigate("/expense");
+    navigate("/user");
   };
 
   return (
-    <div
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 transition-opacity duration-300 ${
+    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 transition-opacity duration-300 ${
         isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
       }`}
     >
@@ -116,9 +119,7 @@ const AddExpense = () => {
               Amount
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <DollarSign className="h-5 w-5 text-gray-400" />
-              </div>
+              <DollarSign className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
               <input
                 type="number"
                 name="amount"
@@ -179,19 +180,14 @@ const AddExpense = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Date
             </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Calendar className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                type="date"
-                name="date"
-                value={formData.date}
-                onChange={handleInputChange}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
+            <input
+              type="date"
+              name="date"
+              value={formData.date}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
           </div>
 
           {/* Recurring Toggle */}
@@ -199,15 +195,11 @@ const AddExpense = () => {
             <input
               type="checkbox"
               name="isRecurring"
-              id="isRecurring"
               checked={formData.isRecurring}
               onChange={handleInputChange}
               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
-            <label
-              htmlFor="isRecurring"
-              className="ml-2 block text-sm text-gray-900"
-            >
+            <label className="ml-2 text-sm text-gray-900">
               Mark as recurring transaction
             </label>
           </div>
@@ -228,20 +220,15 @@ const AddExpense = () => {
           </div>
 
           {/* Error Message */}
-          {error && (
-            <div className="text-red-500 text-sm text-center bg-red-50 p-2 rounded">
-              {error}
-            </div>
-          )}
+          {error && <div className="text-red-500 text-sm">{error}</div>}
 
           {/* Submit Button */}
           <button
             type="submit"
+            className="w-full py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
             disabled={isLoading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-300 disabled:opacity-50"
           >
             {isLoading ? "Adding..." : "Add Transaction"}
-            <ArrowRight className="ml-2 h-5 w-5" />
           </button>
         </form>
       </div>

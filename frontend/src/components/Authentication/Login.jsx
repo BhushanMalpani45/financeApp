@@ -16,7 +16,8 @@ const Login = () => {
 
     try {
       await login(formData);
-      navigate("/expense");
+      setFormData({ email: "", password: "" });
+      navigate('/user');
     } catch (error) {
       setIsError("Invalid email or password");
       setIsLoading(false);

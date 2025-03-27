@@ -42,12 +42,13 @@ router.get("/user",authMiddleware, async (req, res) => {
 
 router.delete("/:id",authMiddleware, async (req, res) => {
   try {
-    const expense = await Expense.findById(req.params.id);
-    if (expense.userId.toString() !== req.user.id) {
+    const {id} = req.params;
+    const expense = await Expense.findById(id);
+    if (expense.userId.toString() !== req.userId) {
         return res.status(403).json({ message: "Forbidden: You can't delete this expense" });
     }
 
-    const expenseD = await Expense.findByIdAndDelete(req.params.id);
+    const expenseD = await Expense.findByIdAndDelete(id);
     res.status(200).json(expenseD);
 
   } catch (error) {
@@ -57,15 +58,18 @@ router.delete("/:id",authMiddleware, async (req, res) => {
 
 router.get("/:id",authMiddleware, async (req, res) => {
   const { id } = req.params;
+  console.log("ID",id);
 
   if (!id) {
     return res.status(400).json({ message: "Expense ID is required" });
   }
 
   try {
-    const expense = await Expense.findById(req.params.id);
+    const expense = await Expense.findById(id);
+    // console.log("Expense Id: ", expense.userId.toString());
+    // console.log(req.userId);
 
-    if (expense.userId.toString() !== req.user.id) {
+    if (expense.userId.toString() !== req.userId) {
         return res.status(403).json({ message: "Forbidden: You can't delete this expense" });
     }
 
@@ -81,11 +85,15 @@ router.get("/:id",authMiddleware, async (req, res) => {
 
 router.put("/:id",authMiddleware, async (req, res) => {
   try {
-    const expense = await Expense.findByIdAndUpdate(req.params.id, req.body, {
+    const {id} = req.params;
+    // console.log("ID:", id);
+    // console.log("Req.Body: ", req.body);
+    const expense = await Expense.findByIdAndUpdate(id, req.body, {
       new: true,
     });
+    console.log(expense);
 
-    if (expense.userId.toString() !== req.user.id) {
+    if (expense.userId.toString() !== req.userId) {
         return res.status(403).json({ message: "Forbidden: You can't delete this expense" });
     }
 

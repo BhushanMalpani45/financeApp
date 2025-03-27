@@ -1,216 +1,142 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { getExpenseById, updateExpense } from "../../services/expense";
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { updateExpense } from "../../services/expense";
+import { DollarSign, Tag, Calendar, X } from "lucide-react";
 
 const UpdateExpense = () => {
-  const { id } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
+  const { expense } = location.state || {}; 
 
   const [formData, setFormData] = useState({
-    amount: '',
-    category: '',
-    date: '',
-    isRecurring: false,
-    notes: '',
-    transactionType: ''
+    date: "",
+    amount: "",
+    category: "",
+    transactionType: "",
   });
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchExpense = async () => {
-      try {
-        if (!id) {
-          setError("Expense ID is missing");
-          setIsLoading(false);
-          return;
-        }
+    if (!expense) {
+      navigate("/user");
+    } else {
+      setFormData({
+        date: expense.date ? new Date(expense.date).toISOString().split("T")[0] : "",
+        amount: expense.amount || "",
+        category: expense.category || "",
+        transactionType: expense.transactionType || "Cash",
+      });
+    }
+  }, [expense, navigate]);
 
-        const response = await getExpenseById(id);
-        
-        if (response && response.data) {
-          const expense = response.data;
-          setFormData({
-            amount: expense.amount || '',
-            category: expense.category || '',
-            date: expense.date ? expense.date.split('T')[0] : '',
-            isRecurring: expense.isRecurring || false,
-            notes: expense.notes || '',
-            transactionType: expense.transactionType || ''
-          });
-        } else {
-          setError("Unable to fetch expense details");
-        }
-      } catch (error) {
-        console.error("Error fetching expense:", error);
-        setError(error.response?.data?.message || "Failed to fetch expense");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchExpense();
-  }, [id, navigate]);
-
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const validateForm = () => {
-    // Basic validation
-    if (!formData.amount || parseFloat(formData.amount) <= 0) {
-      setError('Please enter a valid amount');
-      return false;
-    }
-    if (!formData.category.trim()) {
-      setError('Category is required');
-      return false;
-    }
-    if (!formData.date) {
-      setError('Date is required');
-      return false;
-    }
-    if (!formData.transactionType.trim()) {
-      setError('Transaction Type is required');
-      return false;
-    }
-    setError('');
-    return true;
-  };
-
-  const handleUpdateExpense = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Validate form
-    if (!validateForm()) {
-      return;
-    }
-
     try {
-      // Convert amount to number
-      const updateData = {
-        ...formData,
-        amount: parseFloat(formData.amount)
-      };
-
-      await updateExpense(id, updateData);
-      navigate("/expense");
+      await updateExpense(expense._id, formData);
+      navigate("/user");
     } catch (error) {
-      console.error("Error updating expense:", error);
-      setError(error.response?.data?.message || 'Failed to update expense');
+      console.error("Failed to update expense:", error);
     }
   };
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
 
   return (
-    <div className="update-expense-container">
-      <h2>Update Expense</h2>
-      
-      {error && (
-        <div 
-          className="error-message" 
-          style={{ 
-            color: 'red', 
-            marginBottom: '15px', 
-            padding: '10px', 
-            backgroundColor: '#ffeeee',
-            borderRadius: '5px'
-          }}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 relative overflow-hidden">
+        {/* Close Button */}
+        <button
+          onClick={() => navigate("/user")}
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
         >
-          {error}
-        </div>
-      )}
-
-      <form onSubmit={handleUpdateExpense}>
-        <div className="form-group">
-          <label htmlFor="amount">Amount</label>
-          <input
-            id="amount"
-            type="number"
-            name="amount"
-            value={formData.amount}
-            onChange={handleInputChange}
-            placeholder="Enter amount"
-            required
-            min="0.01"
-            step="0.01"
-          />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="category">Category</label>
-          <input
-            id="category"
-            type="text"
-            name="category"
-            value={formData.category}
-            onChange={handleInputChange}
-            placeholder="Enter category"
-            required
-          />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="transactionType">Transaction Type</label>
-          <select
-            id="transactionType"
-            name="transactionType"
-            value={formData.transactionType}
-            onChange={handleInputChange}
-            required
-          >
-            <option value="">Select Transaction Type</option>
-            <option value="expense">Expense</option>
-            <option value="income">Income</option>
-          </select>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="date">Date</label>
-          <input
-            id="date"
-            type="date"
-            name="date"
-            value={formData.date}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-
-        <div className="form-group">
-          <label>
-            <input
-              type="checkbox"
-              name="isRecurring"
-              checked={formData.isRecurring}
-              onChange={handleInputChange}
-            />
-            Recurring Expense
-          </label>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="notes">Notes (Optional)</label>
-          <textarea
-            id="notes"
-            name="notes"
-            value={formData.notes}
-            onChange={handleInputChange}
-            placeholder="Enter additional notes"
-          />
-        </div>
-
-        <button type="submit" className="submit-btn">
-          Update Expense
+          <X className="h-6 w-6" />
         </button>
-      </form>
+
+        {/* Modal Header */}
+        <div className="bg-blue-50 p-6 border-b">
+          <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+            <DollarSign className="mr-3 text-blue-600" />
+            Update Transaction
+          </h2>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {/* Amount Input */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Amount</label>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+              <input
+                type="number"
+                name="amount"
+                value={formData.amount}
+                onChange={handleChange}
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Category */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+            <div className="relative">
+              <Tag className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Date */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+            <div className="relative">
+              <Calendar className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+              <input
+                type="date"
+                name="date"
+                value={formData.date}
+                onChange={handleChange}
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Transaction Type */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Transaction Type</label>
+            <select
+              name="transactionType"
+              value={formData.transactionType}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+              required
+            >
+              <option value="Cash">Cash</option>
+              <option value="Gpay">Gpay</option>
+              <option value="PhonePay">PhonePay</option>
+              <option value="CreditCard">CreditCard</option>
+            </select>
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            className="w-full py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Update Expense
+          </button>
+        </form>
+      </div>
     </div>
   );
 };
