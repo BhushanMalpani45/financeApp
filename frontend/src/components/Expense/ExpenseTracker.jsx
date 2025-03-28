@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { getExpense, deleteExpense } from "../../services/expense";
 import { useNavigate } from "react-router-dom";
+import Navbar from "../SharedComponents/Navbar"
 import { 
   Trash2, 
   Edit, 
@@ -84,7 +85,9 @@ const ExpenseTracker = () => {
         exp.transactionType === 'Income' ? total + exp.amount : total, 0);
 
     return (
+        <><Navbar/>
         <div className="min-h-screen bg-gray-50 p-6">
+           
             <div className="max-w-6xl mx-auto">
                 {/* Header */}
                 <div className="flex justify-between items-center mb-8">
@@ -206,6 +209,7 @@ const ExpenseTracker = () => {
                 </div>
             </div>
         </div>
+        </>
     );
 };
 
